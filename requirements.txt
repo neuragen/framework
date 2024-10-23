@@ -1,10 +1,8 @@
-# Requisitos principais do projeto
 -e .[all]
 
-# Incluir as dependências de teste e documentação
 -r requirements-tests.txt
 -r requirements-docs.txt
 
-# Ferramentas específicas
 pre-commit >=2.17.0,<4.0.0
 playwright
+gunicorn
