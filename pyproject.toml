@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "neuragens"
+version = "1.0.0-alpha"
+description = "NeuraGens is an open-source framework for developing Generative AI (GenAI) applications. Its modular and extensible architecture allows developers to create sophisticated and scalable solutions quickly and intuitively."
+authors = ["michael <michaeldouglas010790@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.12"
+pydantic = "^2.9.2"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2"
+flake8 = "^4.0.1"
+pre-commit = "^2.17"
+playwright = "^1.18"
+
+[tool.poetry.extras]
+all = ["pytest", "black", "flake8", "pre-commit", "playwright"]
+tests = ["pytest", "pytest-cov"]
+docs = ["sphinx", "sphinx_rtd_theme"]
