@@ -1,5 +1,5 @@
 from typing import Any
-
+from parse import parse
 from neuragens.response import Response
 
 class NeuraGens:
@@ -9,27 +9,43 @@ class NeuraGens:
     def __call__(self, environ, start_response) -> Any:
         response = Response()
         for path, handler_dict in self.routes.items():
-            #print(handler_dict)
+            res = parse(path, environ['PATH_INFO'])
             for request_method, handler in handler_dict.items():
-                if environ['REQUEST_METHOD'] == request_method and path == environ['PATH_INFO']:
-                    handler(environ, response)
-                    response.as_wsgi(start_response)
-                    return [response.text.encode()]
+                if environ['REQUEST_METHOD'] == request_method and res:
+                    handler(environ, response, **res.named)
+                    return response.as_wsgi(start_response)
+                
+        return response.as_wsgi(start_response)
     
+    def route_common(self, path, handler, method_name):
+        #{
+        #    '/test': {
+        #        'GET': handler
+        #    }
+        #}
+        path_name = path or f"/{handler.__name__}"
+            
+        if path_name not in self.routes:
+            self.routes[path_name] = {}
+
+        self.routes[path_name][method_name] = handler
+        return handler
+
     def get(self, path=None):
         def wrapper(handler):
-            #{
-            #    '/test': {
-            #        'GET': handler
-            #    }
-            #}
-            path_name = path or f"/{handler.__name__}"
-            
-            if path_name not in self.routes:
-                self.routes[path_name] = {}
+            return self.route_common(path, handler, 'GET')
 
-            self.routes[path_name]['GET'] = handler
+        return wrapper
+    
+    def post(self, path=None):
+        def wrapper(handler):
+            print('OIII')
+            return self.route_common(path, handler, 'POST')
 
-            print('AQUI - - - - - - - -',self.routes)
+        return wrapper
+    
+    def delete(self, path=None):
+        def wrapper(handler):
+            return self.route_common(path, handler, 'DELETE')
 
         return wrapper
