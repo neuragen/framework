@@ -1,5 +1,5 @@
 class Response:
-    def __init__(self, status_code="404 Missing Not Found", text="Route not found!") -> None:
+    def __init__(self, status_code="404 Not Found", text="Route not found!") -> None:
         self.status_code = status_code
         self.text = text
         self.headers = []
@@ -8,6 +8,20 @@ class Response:
         start_response(self.status_code, headers=self.headers)
         return [self.text.encode()]
 
+    async def as_asgi(self, send):
+        # Envia o início da resposta com o status e cabeçalhos
+        await send({
+            "type": "http.response.start",
+            "status": int(self.status_code.split()[0]),  # Extrai o código de status como um número
+            "headers": [(key.encode("utf-8"), value.encode("utf-8")) for key, value in self.headers]
+        })
+
+        # Envia o corpo da resposta
+        await send({
+            "type": "http.response.body",
+            "body": self.text.encode("utf-8"),
+        })
+
     def send(self, text="", status_code="200 OK"):
         if isinstance(text, str):
             self.text = text
@@ -15,8 +29,8 @@ class Response:
             self.text = str(text)
 
         if isinstance(status_code, int):
-            self.status_code = str(status_code)
+            self.status_code = f"{status_code} OK" if status_code == 200 else str(status_code)
         elif isinstance(status_code, str):
             self.status_code = status_code
         else:
-            raise ValueError('Status code have to be either in or string')
+            raise ValueError("Status code has to be either an integer or string")
