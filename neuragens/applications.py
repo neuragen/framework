@@ -1,7 +1,8 @@
 import types
 from typing import Any
 from parse import parse
-from neuragens.response import Response
+from .requests import Request  # Ajustado para o novo caminho
+from .responses import Response  # Ajustado para o novo caminho
 import inspect
 
 SUPPORTED_REQ_METHODS = {'GET', 'POST', 'DELETE'}
@@ -15,32 +16,33 @@ class NeuraGens:
     async def __call__(self, scope, receive, send) -> Any:
         assert scope['type'] == 'http'
         response = Response()
+        request = Request(scope)  # Usa Request para encapsular 'scope'
 
         # Executa middlewares globais
         for middleware in self.middlewares:
             if isinstance(middleware, types.FunctionType):
-                middleware(scope)
+                middleware(request)
             else:
                 raise ValueError('You can only pass functions as middlewares!')
 
         # Procura a rota e executa os middlewares específicos da rota
         for path, handler_dict in self.routes.items():
-            res = parse(path, scope['path'])
+            res = parse(path, request.path)  # Usa request.path ao invés de scope['path']
             for request_method, handler in handler_dict.items():
-                if scope['method'] == request_method and res:
+                if request.method == request_method and res:  # Usa request.method
                     # Executa middlewares específicos da rota, se existirem
                     route_middlewares = self.middlewares_for_routes.get(path, {}).get(request_method, [])
                     for route_middleware in route_middlewares:
                         if isinstance(route_middleware, types.FunctionType):
-                            route_middleware(scope)
+                            route_middleware(request)
                         else:
                             raise ValueError('Route middlewares must be functions!')
 
                     # Chama o handler (sincronamente ou assincronamente)
                     if inspect.iscoroutinefunction(handler):
-                        await handler(scope, response, **res.named)
+                        await handler(request, response, **res.named)
                     else:
-                        handler(scope, response, **res.named)
+                        handler(request, response, **res.named)
                     await response.as_asgi(send)
                     return
 
@@ -92,6 +94,6 @@ class NeuraGens:
                     self.route_common(path or f"/{handler.__name__}", fn_handler, fn_name.upper(),
                                       middlewares)
             else:
-                raise ValueError("@route can only be usedfor classes")
+                raise ValueError("@route can only be used for classes")
         
         return wrapper

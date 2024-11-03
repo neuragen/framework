@@ -1,10 +1,10 @@
-from neuragens.main import NeuraGens
+from neuragens import NeuraGens
 
 def global_middlewares(scope):
-    print('Middleware executed')
+    print('Middleware executado')
 
 def local_middlewares(scope):
-    print('Local Middleware executed')
+    print('Middleware local executado')
 
 neuragens = NeuraGens(middlewares=[global_middlewares])
 
@@ -22,10 +22,16 @@ class User:
     def __init__(self):
         pass
     async def get(req, res):
-        res.send('OLA TUDO BEM', '201')
+        teste_param = req.queries.get('nome')
+        oi_param = req.queries.get('sobrenome')
+        
+        print(f"Parâmetro 'teste': {teste_param}")
+        print(f"Parâmetro 'oi': {oi_param}")
+        
+        res.send(f'Parâmetros recebidos - teste: {teste_param}, oi: {oi_param}', '201')
     
     async def post(req, res):
-        res.send('POST - OLA TUDO BEM', '201')
+        res.render('example', {'name': 'michael', 'message': 'Olá tudo bem?'})
     
     def hello(req, res):
         pass
