@@ -5,8 +5,9 @@ __version__ = "1.0.1-alpha"
 from .applications import NeuraGens
 from .requests import Request
 from .responses import Response
+from starlette.middleware import Middleware
 
-_hard_dependencies = ("parse",)
+_hard_dependencies = ("parse", "starlette")
 _missing_dependencies = []
 
 for _dependency in _hard_dependencies:
@@ -21,7 +22,7 @@ if _missing_dependencies:
     )
 del _hard_dependencies, _dependency, _missing_dependencies
 
-__all__ = ["NeuraGens", "Request", "Response"]
+__all__ = ["NeuraGens", "Request", "Response", "Middleware"]
 
 def show_version():
     print(f"NeuraGens version: {__version__}")
